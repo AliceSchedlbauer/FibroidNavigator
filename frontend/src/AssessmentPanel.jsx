@@ -4,6 +4,7 @@ import { usePersistedState } from "./useLocalStorage";
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 const INITIAL_ASSESSMENT = {
+  source_confirmed: true,
   symptoms: {
     heavy_bleeding: true,
     period_longer_than_7_days: true,
@@ -113,7 +114,7 @@ function cleanAssessmentPayload(assessment) {
   );
 
   return {
-    ...assessment,
+    symptoms: assessment.symptoms,
     profile: {
       ...assessment.profile,
       age: Number(assessment.profile.age),
@@ -154,6 +155,10 @@ function AssessmentPanel() {
     setDemoLabel(null);
 
     try {
+      if ((assessment.source_confirmed ?? true) === false) {
+        throw new Error("Please confirm that clinical entries come from a medical report or clinician note.");
+      }
+
       const res = await fetch(`${API_BASE}/api/v1/assessment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -183,7 +188,7 @@ function AssessmentPanel() {
         throw new Error(detail.detail ?? `Demo load failed (${res.status})`);
       }
       const data = await res.json();
-      setAssessment(data.input);
+      setAssessment({ source_confirmed: true, ...data.input });
       setResult(data.result);
       setDemoLabel(data.label);
     } catch (err) {
@@ -206,6 +211,10 @@ function AssessmentPanel() {
           Three-layer WombWise assessment: one-time profile, daily symptoms and
           modifiable risks, plus optional blood markers.
         </p>
+        <div className="source-note">
+          Use report-confirmed information only. Lab values and diagnoses should
+          come from a medical report, lab report, or clinician note - not guesses.
+        </div>
 
         <form onSubmit={submitAssessment}>
           <div className="assessment-section">
@@ -279,6 +288,10 @@ function AssessmentPanel() {
 
           <div className="assessment-section">
             <h3>4. Bring your blood test</h3>
+            <p className="section-note">
+              Enter these numbers exactly as shown on your lab report. Leave a
+              field blank when it is not available.
+            </p>
             <div className="blood-grid">
               {BLOOD_FIELDS.map(([key, label, unit, hint]) => (
                 <label key={key}>
@@ -297,6 +310,21 @@ function AssessmentPanel() {
               ))}
             </div>
           </div>
+
+          <label className="checkbox-label source-checkbox">
+            <input
+              type="checkbox"
+              checked={assessment.source_confirmed ?? true}
+              onChange={(e) =>
+                setAssessment((prev) => ({
+                  ...prev,
+                  source_confirmed: e.target.checked,
+                }))
+              }
+            />
+            I confirm these clinical entries come from a medical report, lab
+            report, imaging report, or clinician note.
+          </label>
 
           <div className="actions">
             <button type="submit" className="btn-primary" disabled={loading}>

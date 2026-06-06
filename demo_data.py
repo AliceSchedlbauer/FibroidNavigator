@@ -131,6 +131,7 @@ def get_demo_payload(model_auc: float) -> dict:
 def get_shield_demo_payload() -> dict:
     """Demo daily check-in for WombWise prevention engine."""
     from fibroid_shield import DEMO_SHIELD_INPUT, analyze_dict
+    from fibroid_x_predict_voicing import voicing_for_appointments
     from wombwise_cycle import CycleInput, cycle_info_dict
 
     cycle_info = cycle_info_dict(
@@ -140,6 +141,14 @@ def get_shield_demo_payload() -> dict:
             reference_date=date(2026, 6, 6),
         )
     )
+    result = analyze_dict(DEMO_SHIELD_INPUT, cycle_info)
+    appointment = voicing_for_appointments("Germany", result["risk_level"], "Hamburg")
+    if result["risk_level"] == "HIGH" and "error" not in appointment:
+        result["appointment_recommendation"] = appointment
+        result["book_specialist_prompt"] = (
+            "Your fibroid risk is elevated today. Would you like to book a "
+            "gynecology specialist in Hamburg?"
+        )
 
     return {
         "label": "Demo: Day 18 + High Stress + Red Meat",
@@ -151,5 +160,5 @@ def get_shield_demo_payload() -> dict:
             "city": "Hamburg",
         },
         "cycle_info": cycle_info,
-        "result": analyze_dict(DEMO_SHIELD_INPUT, cycle_info),
+        "result": result,
     }

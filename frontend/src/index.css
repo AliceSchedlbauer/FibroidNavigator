@@ -99,6 +99,8 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex: 1 1 680px;
+  min-width: 0;
 }
 
 .brand-lockup {
@@ -190,33 +192,65 @@ textarea:focus-visible {
 
 .hero-pills {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-wrap: nowrap;
+  gap: 0.85rem;
   margin-top: 1rem;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.hero-pills span {
-  padding: 0.4rem 0.7rem;
+.capability-row {
+  align-items: center;
+  justify-content: flex-start;
+  width: fit-content;
+  max-width: min(100%, 44rem);
+}
+
+.hero-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  width: fit-content;
+  padding: 0.5rem 0.9rem;
   border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.14);
   color: #f7fee7;
-  font-size: 0.78rem;
+  box-shadow: 0 10px 18px rgba(8, 47, 30, 0.14);
+  font-size: 0.82rem;
   font-weight: 700;
+  text-align: center;
+}
+
+.hero-pill:hover {
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
   gap: 0.75rem;
-  min-width: min(100%, 390px);
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .hero-stats div {
+  width: 112px;
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(10px);
+  box-shadow: 0 14px 32px rgba(8, 47, 30, 0.12);
 }
 
 .hero-stats strong,
@@ -286,6 +320,26 @@ textarea:focus-visible {
   font-size: 0.9rem;
 }
 
+.source-note,
+.section-note {
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  background: #f0fdf4;
+  color: #14532d;
+  font-size: 0.86rem;
+}
+
+.source-note {
+  margin: -0.5rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  font-weight: 650;
+}
+
+.section-note {
+  margin: 0.1rem 0 1rem;
+  padding: 0.65rem 0.8rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -348,6 +402,46 @@ input[type="range"] {
   padding: 0 0.25rem;
 }
 
+.clinical-report-group {
+  border-radius: 16px;
+  background: #fffdf7;
+}
+
+.clinical-report-hint {
+  display: block;
+  margin: 0.2rem 0 0.85rem;
+}
+
+.clinical-pill-row {
+  display: flex;
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: none;
+}
+
+.clinical-pill-row::-webkit-scrollbar {
+  display: none;
+}
+
+.clinical-entry-pill {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.clinical-entry-pill:has(input:checked) {
+  border-color: var(--color-primary);
+  background: #dcfce7;
+  color: var(--color-primary-dark);
+}
+
 .checkbox-label {
   flex-direction: row;
   align-items: center;
@@ -355,6 +449,21 @@ input[type="range"] {
   font-weight: 400;
   margin-top: 0.5rem;
   cursor: pointer;
+}
+
+.source-checkbox {
+  align-items: flex-start;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-weight: 650;
+}
+
+.source-checkbox input {
+  margin-top: 0.2rem;
 }
 
 .actions {
@@ -1051,6 +1160,13 @@ textarea {
   .hero-stats {
     width: 100%;
     min-width: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .hero-stats::-webkit-scrollbar {
+    display: none;
   }
 
   .hero-stats div {
@@ -1106,12 +1222,23 @@ textarea {
 
 @media (max-width: 480px) {
   .hero-stats {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: nowrap;
   }
 
-  .hero-pills span {
+  .hero-pills {
+    display: flex;
+    flex-wrap: nowrap;
     width: 100%;
+    overflow-x: auto;
+  }
+
+  .hero-pill {
+    width: auto;
     text-align: center;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    padding: 0.42rem 0.58rem;
   }
 
   .stress-btn {
@@ -1205,7 +1332,7 @@ textarea {
 
 .device-frame-mobile .device-screen .hero-stats {
   width: 100%;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .device-frame-mobile .device-screen .actions button {

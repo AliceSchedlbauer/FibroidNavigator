@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">WombWise logo</title>
+  <desc id="desc">A deep green shield with a warm womb line and a protective leaf.</desc>
+  <rect width="512" height="512" rx="116" fill="#F6F4EC"/>
+  <circle cx="256" cy="250" r="184" fill="#DCFCE7"/>
+  <path d="M256 66L397 122V231C397 331 338 407 256 446C174 407 115 331 115 231V122L256 66Z" fill="#166534"/>
+  <path d="M164 210C164 271 205 319 256 319C307 319 348 271 348 210" stroke="#F7D6C8" stroke-width="34" stroke-linecap="round"/>
+  <path d="M256 320C258 252 299 204 365 188C356 257 316 304 256 320Z" fill="#86EFAC"/>
+  <path d="M256 320C254 269 229 231 183 205" stroke="#F7D6C8" stroke-width="26" stroke-linecap="round"/>
+  <circle cx="176" cy="210" r="20" fill="#F7D6C8"/>
+  <circle cx="336" cy="210" r="20" fill="#F7D6C8"/>
+</svg>

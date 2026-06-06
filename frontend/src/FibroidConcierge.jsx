@@ -35,6 +35,11 @@ const CITY_OPTIONS = {
 };
 const STRESS_EMOJIS = ["😌", "🙂", "😐", "😟", "😰"];
 const ACTION_ICONS = ["🍵", "🚶", "🥦"];
+const CAPABILITY_LINKS = [
+  { label: "Personalized Cycle Tracking", tab: "shield" },
+  { label: "Blood Marker Insights", tab: "assessment" },
+  { label: "Doctolib-Ready Booking", tab: "risk" },
+];
 
 const INITIAL_FORM = {
   age: 42,
@@ -104,6 +109,7 @@ const INITIAL_RISK_PREFS = {
   form: INITIAL_FORM,
   region: "Germany",
   city: "Berlin",
+  source_confirmed: true,
 };
 
 function FibroidConcierge() {
@@ -120,6 +126,7 @@ function FibroidConcierge() {
   const form = riskPrefs.form;
   const region = riskPrefs.region;
   const city = riskPrefs.city;
+  const sourceConfirmed = riskPrefs.source_confirmed ?? true;
   const [result, setResult] = useState(null);
   const [flow, setFlow] = useState(null);
   const [bleedingData, setBleedingData] = useState(null);
@@ -167,6 +174,10 @@ function FibroidConcierge() {
 
   const setCity = (nextCity) => {
     setRiskPrefs((prev) => ({ ...prev, city: nextCity }));
+  };
+
+  const setSourceConfirmed = (checked) => {
+    setRiskPrefs((prev) => ({ ...prev, source_confirmed: checked }));
   };
 
   const checkHealth = async () => {
@@ -254,6 +265,10 @@ function FibroidConcierge() {
     setDemoLabel(null);
 
     try {
+      if (!sourceConfirmed) {
+        throw new Error("Please confirm that clinical entries come from a medical report or clinician note.");
+      }
+
       const res = await fetch(`${API_BASE}/api/v1/flow`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -302,6 +317,7 @@ function FibroidConcierge() {
         form: data.patient,
         region: "Germany",
         city: data.flow?.city ?? "Berlin",
+        source_confirmed: true,
       });
       setResult(data.risk);
       setFlow(data.flow ?? null);
@@ -333,12 +349,19 @@ function FibroidConcierge() {
             <span className="eyebrow">Fibroid prevention, personalized daily</span>
             <h1>WombWise</h1>
             <p className="subtitle">
-              Cycle-based prevention + AI risk calculator · AUC 0.95 model
+              Cycle-based prevention + validated risk calculator · AUC 0.95 model
             </p>
-            <div className="hero-pills" aria-label="Core app capabilities">
-              <span>Personalized cycle tracking</span>
-              <span>Blood marker insights</span>
-              <span>Doctolib-ready booking</span>
+            <div className="hero-pills capability-row" aria-label="Core app capabilities">
+              {CAPABILITY_LINKS.map((capability) => (
+                <button
+                  key={capability.label}
+                  type="button"
+                  className="hero-pill"
+                  onClick={() => setActiveTab(capability.tab)}
+                >
+                  {capability.label}
+                </button>
+              ))}
             </div>
             <div className="preview-toggle" role="group" aria-label="Layout preview">
               <button
@@ -360,7 +383,7 @@ function FibroidConcierge() {
           <div className="hero-stats" aria-label="WombWise feature highlights">
             <div>
               <strong>30 sec</strong>
-              <span>daily check-in</span>
+              <span>check-in</span>
             </div>
             <div>
               <strong>87%</strong>
@@ -415,8 +438,9 @@ function FibroidConcierge() {
                     <span className="saved-pill">Saved on this device</span>
                   </div>
                   <p className="card-desc">
-                    Enter when your last period started and the one before it.
-                    WombWise calculates your personal cycle length automatically.
+                    Enter the start date of your latest bleeding and the start
+                    date of the previous bleeding. WombWise calculates your
+                    personal cycle length automatically.
                   </p>
                   <div className="form-grid">
                     <label>
@@ -752,6 +776,12 @@ function FibroidConcierge() {
                 Enter clinical data to estimate fibroid-related risk and clinical
                 priority. Includes specialist appointment matching.
               </p>
+              <div className="source-note">
+                Use report-confirmed clinical data only: diagnoses, fibroid
+                count, size, anemia status, and blood markers should come from
+                a clinician, ultrasound, MRI, or lab report. Do not enter
+                guessed values.
+              </div>
 
               <form onSubmit={calculateRisk}>
                 <div className="form-grid">
@@ -854,8 +884,13 @@ function FibroidConcierge() {
                   </select>
                 </label>
 
-                <fieldset className="checkbox-group">
-                  <legend>Clinical factors</legend>
+                <fieldset className="checkbox-group clinical-report-group">
+                  <legend>Report-confirmed clinical entries</legend>
+                  <p className="field-hint clinical-report-hint">
+                    Select only entries documented in a medical report, imaging
+                    report, lab report, or clinician note.
+                  </p>
+                  <div className="clinical-pill-row">
                   {[
                     ["family_history", "Family history of fibroids"],
                     ["heavy_bleeding", "Heavy or prolonged bleeding"],
@@ -863,7 +898,7 @@ function FibroidConcierge() {
                     ["african_ancestry", "African ancestry"],
                     ["nulliparity", "Nulliparity (no prior birth)"],
                   ].map(([key, label]) => (
-                    <label key={key} className="checkbox-label">
+                    <label key={key} className="checkbox-label clinical-entry-pill">
                       <input
                         type="checkbox"
                         checked={form[key]}
@@ -872,7 +907,18 @@ function FibroidConcierge() {
                       {label}
                     </label>
                   ))}
+                  </div>
                 </fieldset>
+
+                <label className="checkbox-label source-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={sourceConfirmed}
+                    onChange={(e) => setSourceConfirmed(e.target.checked)}
+                  />
+                  I confirm these clinical entries come from a medical report,
+                  imaging report, lab report, or clinician note.
+                </label>
 
                 <div className="actions">
                   <button type="submit" className="btn-primary" disabled={loading}>
