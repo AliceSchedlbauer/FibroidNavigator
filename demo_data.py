@@ -124,3 +124,14 @@ def get_demo_payload(model_auc: float) -> dict:
         "risk": asdict(build_demo_risk_result(model_auc)),
         "flow": build_demo_flow(model_auc),
     }
+
+
+def get_shield_demo_payload() -> dict:
+    """Demo daily check-in for Fibroid Shield prevention engine."""
+    from fibroid_shield import DEMO_SHIELD_INPUT, analyze_dict
+
+    return {
+        "label": "Demo: Late Luteal + High Stress + Red Meat",
+        "input": DEMO_SHIELD_INPUT.model_dump(),
+        "result": analyze_dict(DEMO_SHIELD_INPUT),
+    }

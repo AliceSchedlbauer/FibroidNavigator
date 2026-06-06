@@ -1,13 +1,14 @@
 """
-FastAPI endpoint for the Fibroid Concierge Risk Calculator.
+FastAPI endpoint for Fibroid Shield – combined prevention + risk platform.
 """
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from demo_data import get_demo_payload
+from demo_data import get_demo_payload, get_shield_demo_payload
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
+from fibroid_shield import ShieldInput, analyze_dict
 from fibroid_x_predict_voicing import (
     SUPPORTED_REGIONS,
     end_to_end_flow,
@@ -15,9 +16,9 @@ from fibroid_x_predict_voicing import (
 )
 
 app = FastAPI(
-    title="Fibroid Navigator API",
-    description="AI Risk Calculator for uterine fibroids (AUC ~0.95)",
-    version="1.0.0",
+    title="Fibroid Shield API",
+    description="Cycle-based prevention + AI risk calculator for uterine fibroids",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -97,6 +98,24 @@ def get_appointments(region: str, risk_level: str) -> dict:
     """Specialist matching by region and risk level (HIGH/MEDIUM/LOW)."""
     try:
         return voicing_for_appointments(region, risk_level.upper())
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/analyze")
+def analyze_daily_checkin(checkin: ShieldInput) -> dict:
+    """Fibroid Shield daily check-in: cycle + stress + food → micro-actions."""
+    try:
+        return analyze_dict(checkin)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/shield/demo")
+def get_shield_demo() -> dict:
+    """Demo daily check-in: luteal phase + stress + red meat."""
+    try:
+        return get_shield_demo_payload()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
