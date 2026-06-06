@@ -307,10 +307,10 @@ def analyze_dict(
 
 # Demo scenario: luteal phase + high stress + red meat
 DEMO_SHIELD_INPUT = ShieldInput(
-    cycle_day=20,
+    cycle_day=18,
     cycle_length=29,
-    last_period_start=date(2026, 5, 18),
-    previous_period_start=date(2026, 4, 19),
+    last_period_start=date(2026, 5, 20),
+    previous_period_start=date(2026, 4, 21),
     stress_level=4,
     food_log="Coffee, steak with fries, and a glass of wine for dinner",
     vitamin_d_supplement=False,
@@ -321,7 +321,7 @@ def main() -> None:
     print("=== WombWise - Daily Prevention Engine ===\n")
 
     result = analyze_daily_shield(DEMO_SHIELD_INPUT)
-    print("Demo check-in (cycle day 22, stress 4, red meat):")
+    print("Demo check-in (cycle day 18, stress 4, red meat):")
     print(json.dumps(asdict(result), indent=2))
 
 
