@@ -3,6 +3,8 @@ import BleedingChart from "./BleedingChart";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+const REGIONS = ["Germany", "UK", "USA"];
+
 const INITIAL_FORM = {
   age: 42,
   bmi: 29.5,
@@ -24,7 +26,9 @@ const CATEGORY_COLORS = {
 
 function FibroidConcierge() {
   const [form, setForm] = useState(INITIAL_FORM);
+  const [region, setRegion] = useState("Germany");
   const [result, setResult] = useState(null);
+  const [flow, setFlow] = useState(null);
   const [bleedingData, setBleedingData] = useState(null);
   const [demoLabel, setDemoLabel] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -53,14 +57,15 @@ function FibroidConcierge() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setFlow(null);
     setBleedingData(null);
     setDemoLabel(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/risk`, {
+      const res = await fetch(`${API_BASE}/api/v1/flow`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ patient: form, region }),
       });
 
       if (!res.ok) {
@@ -69,7 +74,15 @@ function FibroidConcierge() {
       }
 
       const data = await res.json();
-      setResult(data);
+      setFlow(data);
+      setResult({
+        risk_percent: data.risk.risk_percent,
+        risk_score: data.risk.risk_score,
+        risk_category: data.risk.risk_category,
+        priority: data.risk.priority,
+        recommendation: data.risk.recommendation,
+        model_auc: data.risk.model_auc,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -81,6 +94,7 @@ function FibroidConcierge() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setFlow(null);
     setBleedingData(null);
     setDemoLabel(null);
 
@@ -93,7 +107,9 @@ function FibroidConcierge() {
 
       const data = await res.json();
       setForm(data.patient);
+      setRegion("Germany");
       setResult(data.risk);
+      setFlow(data.flow ?? null);
       setBleedingData(data.bleeding_chart);
       setDemoLabel(data.label);
     } catch (err) {
@@ -194,6 +210,20 @@ function FibroidConcierge() {
                 />
               </label>
             </div>
+
+            <label className="region-select">
+              Region
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+              >
+                {REGIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <fieldset className="checkbox-group">
               <legend>Clinical factors</legend>
@@ -304,6 +334,46 @@ function FibroidConcierge() {
                 <h3>Recommendation</h3>
                 <p>{result.recommendation}</p>
               </div>
+
+              {flow && (
+                <div className="appointment-section">
+                  <h3>Specialist Appointment</h3>
+                  {flow.appointment?.error ? (
+                    <p className="appointment-error">{flow.appointment.error}</p>
+                  ) : (
+                    <dl className="appointment-details">
+                      <div>
+                        <dt>Specialist</dt>
+                        <dd>{flow.appointment.specialist}</dd>
+                      </div>
+                      <div>
+                        <dt>City</dt>
+                        <dd>{flow.appointment.city}</dd>
+                      </div>
+                      <div>
+                        <dt>Specialty</dt>
+                        <dd>{flow.appointment.specialty}</dd>
+                      </div>
+                      <div>
+                        <dt>Wait time</dt>
+                        <dd>{flow.appointment.wait_time}</dd>
+                      </div>
+                      <div>
+                        <dt>Priority</dt>
+                        <dd>{flow.appointment.priority}</dd>
+                      </div>
+                    </dl>
+                  )}
+                  {flow.appointment?.voicing_script && (
+                    <blockquote className="voicing-script">
+                      {flow.appointment.voicing_script}
+                    </blockquote>
+                  )}
+                  <p className="combined-action">
+                    <strong>Next step:</strong> {flow.action}
+                  </p>
+                </div>
+              )}
 
               {bleedingData && (
                 <div className="bleeding-section">

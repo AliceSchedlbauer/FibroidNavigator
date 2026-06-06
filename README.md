@@ -13,8 +13,9 @@ AI-powered clinical decision support for uterine fibroid risk assessment.
 
 ```bash
 pip install -r requirements.txt
-python fibroid_concierge.py   # local model test
-python api.py                 # starts API on http://127.0.0.1:8000
+python fibroid_concierge.py           # Step 1–2: local model test
+python fibroid_x_predict_voicing.py   # End-to-end MVP test
+python api.py                         # Step 3–4: API on http://127.0.0.1:8000
 ```
 
 ### 2. API Test
@@ -22,6 +23,8 @@ python api.py                 # starts API on http://127.0.0.1:8000
 ```bash
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/api/v1/demo
+curl http://127.0.0.1:8000/api/v1/regions
+curl -X POST http://127.0.0.1:8000/api/v1/flow -H "Content-Type: application/json" -d "{\"patient\":{\"age\":32,\"bmi\":28.5,\"family_history\":true,\"heavy_bleeding\":true,\"pelvic_pain_severity\":7,\"anemia\":true,\"fibroid_count\":3,\"largest_fibroid_cm\":5.8,\"african_ancestry\":true,\"nulliparity\":false},\"region\":\"Germany\"}"
 curl -X POST http://127.0.0.1:8000/api/v1/risk -H "Content-Type: application/json" -d "{\"age\":32,\"bmi\":28.5,\"family_history\":true,\"heavy_bleeding\":true,\"pelvic_pain_severity\":7,\"anemia\":true,\"fibroid_count\":3,\"largest_fibroid_cm\":5.8,\"african_ancestry\":true,\"nulliparity\":false}"
 ```
 

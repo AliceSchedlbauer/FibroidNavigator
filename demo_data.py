@@ -83,6 +83,37 @@ def build_demo_risk_result(model_auc: float) -> RiskResult:
     )
 
 
+def build_demo_flow(model_auc: float, region: str = "Germany") -> dict:
+    """End-to-end flow using the fixed 87% showcase risk for the demo patient."""
+    from fibroid_x_predict_voicing import voicing_for_appointments
+
+    risk = build_demo_risk_result(model_auc)
+    appointment = voicing_for_appointments(region, "HIGH")
+
+    return {
+        "risk": {
+            "risk_score": risk.risk_score,
+            "12_month_risk": f"{risk.risk_percent}%",
+            "risk_percent": risk.risk_percent,
+            "risk_category": risk.risk_category,
+            "priority": risk.priority,
+            "growth_rate": "+23.5% per 6 months",
+            "crisis_timeline": "3–4 months",
+            "action": "Schedule pelvic ultrasound within 2 weeks.",
+            "recommendation": risk.recommendation,
+            "model_auc": risk.model_auc,
+        },
+        "appointment": appointment,
+        "risk_level": "HIGH",
+        "region": region,
+        "action": (
+            f"Schedule pelvic ultrasound within 2 weeks. · Book with "
+            f"{appointment['specialist']} in {appointment['wait_time']} "
+            f"({appointment['city']})"
+        ),
+    }
+
+
 def get_demo_payload(model_auc: float) -> dict:
     """Full demo response including patient, bleeding chart, and risk."""
     return {
@@ -91,4 +122,5 @@ def get_demo_payload(model_auc: float) -> dict:
         "patient": DEMO_PATIENT.model_dump(),
         "bleeding_chart": DEMO_BLEEDING_CHART,
         "risk": asdict(build_demo_risk_result(model_auc)),
+        "flow": build_demo_flow(model_auc),
     }

@@ -8,6 +8,11 @@ from pydantic import BaseModel
 
 from demo_data import get_demo_payload
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
+from fibroid_x_predict_voicing import (
+    SUPPORTED_REGIONS,
+    end_to_end_flow,
+    voicing_for_appointments,
+)
 
 app = FastAPI(
     title="Fibroid Navigator API",
@@ -64,6 +69,34 @@ def get_demo() -> dict:
     """Return showcase demo patient (Black woman, 32) with bleeding chart."""
     try:
         return get_demo_payload(concierge.metadata.get("auc", 0.0))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+class FlowRequest(BaseModel):
+    patient: PatientInput
+    region: str = "Germany"
+
+
+@app.get("/api/v1/regions")
+def list_regions() -> dict:
+    return {"regions": SUPPORTED_REGIONS}
+
+
+@app.post("/api/v1/flow")
+def run_end_to_end_flow(request: FlowRequest) -> dict:
+    """Full pipeline: risk prediction + specialist appointment matching."""
+    try:
+        return end_to_end_flow(request.patient, request.region, concierge)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/appointments/{region}/{risk_level}")
+def get_appointments(region: str, risk_level: str) -> dict:
+    """Specialist matching by region and risk level (HIGH/MEDIUM/LOW)."""
+    try:
+        return voicing_for_appointments(region, risk_level.upper())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
