@@ -17,8 +17,19 @@ Cycle-based fibroid prevention + AI risk calculator for uterine fibroids.
 
 ## Stack
 
-- **Backend:** Python, scikit-learn, FastAPI
+- **Backend:** Python, scikit-learn, FastAPI, ElevenLabs (optional voice)
 - **Frontend:** React + Vite + Plotly (deep green + warm white aesthetic)
+
+## Optional: ElevenLabs Voice Booking
+
+Copy `.env.example` to `.env` and add your API key:
+
+```bash
+ELEVENLABS_API_KEY=your_api_key_here
+```
+
+Without a key, WombWise automatically falls back to the browser voice for demo playback.
+Cycle data, assessment answers, and UI preferences are saved in `localStorage` on the device.
 
 ## Quick Start
 
@@ -39,6 +50,7 @@ python api.py                         # API on http://127.0.0.1:8000
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/api/v1/demo
 curl http://127.0.0.1:8000/api/v1/shield/demo
+curl http://127.0.0.1:8000/api/v1/voice/status
 curl http://127.0.0.1:8000/api/v1/assessment/demo
 curl -X POST http://127.0.0.1:8000/api/v1/cycle/calculate -H "Content-Type: application/json" -d "{\"last_period_start\":\"2026-05-18\",\"previous_period_start\":\"2026-04-19\",\"reference_date\":\"2026-06-06\"}"
 curl -X POST http://127.0.0.1:8000/analyze -H "Content-Type: application/json" -d "{\"last_period_start\":\"2026-05-18\",\"previous_period_start\":\"2026-04-19\",\"stress_level\":4,\"food_log\":\"Coffee, steak with fries, glass of wine\",\"vitamin_d_supplement\":false,\"region\":\"Germany\",\"city\":\"Hamburg\"}"

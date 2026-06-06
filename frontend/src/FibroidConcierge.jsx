@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import AssessmentPanel from "./AssessmentPanel";
 import BleedingChart from "./BleedingChart";
 import DevicePreview from "./DevicePreview";
+import VoiceBooking from "./VoiceBooking";
 import { calculateCycleInfo, formatDisplayDate } from "./cycleUtils";
+import { usePersistedState } from "./useLocalStorage";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -98,19 +100,35 @@ function WombWiseLogo() {
   );
 }
 
-function FibroidConcierge() {
-  const [activeTab, setActiveTab] = useState("shield");
-  const [previewMode, setPreviewMode] = useState("desktop");
+const INITIAL_RISK_PREFS = {
+  form: INITIAL_FORM,
+  region: "Germany",
+  city: "Berlin",
+};
 
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [region, setRegion] = useState("Germany");
-  const [city, setCity] = useState("Berlin");
+function FibroidConcierge() {
+  const [activeTab, setActiveTab] = usePersistedState("wombwise_active_tab", "shield");
+  const [previewMode, setPreviewMode] = usePersistedState(
+    "wombwise_preview_mode",
+    "desktop"
+  );
+  const [riskPrefs, setRiskPrefs] = usePersistedState(
+    "wombwise_risk_prefs",
+    INITIAL_RISK_PREFS
+  );
+
+  const form = riskPrefs.form;
+  const region = riskPrefs.region;
+  const city = riskPrefs.city;
   const [result, setResult] = useState(null);
   const [flow, setFlow] = useState(null);
   const [bleedingData, setBleedingData] = useState(null);
   const [demoLabel, setDemoLabel] = useState(null);
 
-  const [shieldForm, setShieldForm] = useState(INITIAL_SHIELD);
+  const [shieldForm, setShieldForm] = usePersistedState(
+    "wombwise_shield_form",
+    INITIAL_SHIELD
+  );
   const [shieldResult, setShieldResult] = useState(null);
   const [shieldCycleInfo, setShieldCycleInfo] = useState(null);
   const [shieldDemoLabel, setShieldDemoLabel] = useState(null);
@@ -129,7 +147,10 @@ function FibroidConcierge() {
   const [apiStatus, setApiStatus] = useState(null);
 
   const updateField = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setRiskPrefs((prev) => ({
+      ...prev,
+      form: { ...prev.form, [field]: value },
+    }));
   };
 
   const updateShieldField = (field, value) => {
@@ -137,8 +158,15 @@ function FibroidConcierge() {
   };
 
   const updateRegion = (nextRegion) => {
-    setRegion(nextRegion);
-    setCity(CITY_OPTIONS[nextRegion]?.[0] ?? "");
+    setRiskPrefs((prev) => ({
+      ...prev,
+      region: nextRegion,
+      city: CITY_OPTIONS[nextRegion]?.[0] ?? "",
+    }));
+  };
+
+  const setCity = (nextCity) => {
+    setRiskPrefs((prev) => ({ ...prev, city: nextCity }));
   };
 
   const checkHealth = async () => {
@@ -270,9 +298,11 @@ function FibroidConcierge() {
       }
 
       const data = await res.json();
-      setForm(data.patient);
-      setRegion("Germany");
-      setCity(data.flow?.city ?? "Berlin");
+      setRiskPrefs({
+        form: data.patient,
+        region: "Germany",
+        city: data.flow?.city ?? "Berlin",
+      });
       setResult(data.risk);
       setFlow(data.flow ?? null);
       setBleedingData(data.bleeding_chart);
@@ -380,7 +410,10 @@ function FibroidConcierge() {
 
               <form onSubmit={analyzeShield}>
                 <div className="cycle-tracker-card">
-                  <h3>Your cycle</h3>
+                  <div className="cycle-tracker-header">
+                    <h3>Your cycle</h3>
+                    <span className="saved-pill">Saved on this device</span>
+                  </div>
                   <p className="card-desc">
                     Enter when your last period started and the one before it.
                     WombWise calculates your personal cycle length automatically.
@@ -688,11 +721,10 @@ function FibroidConcierge() {
                           </div>
                         )}
                         {shieldResult.appointment_recommendation.voicing_script && (
-                          <div className="voice-booking-card">
-                            <span className="voice-label">Voice booking demo</span>
-                            <blockquote className="voicing-script">
-                              {shieldResult.appointment_recommendation.voicing_script}
-                            </blockquote>
+                          <>
+                            <VoiceBooking
+                              script={shieldResult.appointment_recommendation.voicing_script}
+                            />
                             <a
                               className="booking-link"
                               href={shieldResult.appointment_recommendation.booking_link}
@@ -702,7 +734,7 @@ function FibroidConcierge() {
                               Open{" "}
                               {shieldResult.appointment_recommendation.booking_provider}
                             </a>
-                          </div>
+                          </>
                         )}
                       </div>
                     )}
@@ -978,11 +1010,8 @@ function FibroidConcierge() {
                         </div>
                       )}
                       {flow.appointment?.voicing_script && (
-                        <div className="voice-booking-card">
-                          <span className="voice-label">Voice booking demo</span>
-                          <blockquote className="voicing-script">
-                            {flow.appointment.voicing_script}
-                          </blockquote>
+                        <>
+                          <VoiceBooking script={flow.appointment.voicing_script} />
                           <a
                             className="booking-link"
                             href={flow.appointment.booking_link}
@@ -991,7 +1020,7 @@ function FibroidConcierge() {
                           >
                             Open {flow.appointment.booking_provider}
                           </a>
-                        </div>
+                        </>
                       )}
                       <p className="combined-action">
                         <strong>Next step:</strong> {flow.action}

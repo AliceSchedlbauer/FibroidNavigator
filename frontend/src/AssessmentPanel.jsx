@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePersistedState } from "./useLocalStorage";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -126,7 +127,10 @@ function cleanAssessmentPayload(assessment) {
 }
 
 function AssessmentPanel() {
-  const [assessment, setAssessment] = useState(INITIAL_ASSESSMENT);
+  const [assessment, setAssessment] = usePersistedState(
+    "wombwise_assessment_form",
+    INITIAL_ASSESSMENT
+  );
   const [result, setResult] = useState(null);
   const [demoLabel, setDemoLabel] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -194,7 +198,10 @@ function AssessmentPanel() {
   return (
     <>
       <section className="card form-card assessment-form-card">
-        <h2>Interactive Assessment</h2>
+        <div className="cycle-tracker-header">
+          <h2>Interactive Assessment</h2>
+          <span className="saved-pill">Saved on this device</span>
+        </div>
         <p className="card-desc">
           Three-layer WombWise assessment: one-time profile, daily symptoms and
           modifiable risks, plus optional blood markers.

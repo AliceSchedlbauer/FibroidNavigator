@@ -4,7 +4,10 @@ FastAPI endpoint for WombWise - combined prevention + risk platform.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import Response
+from pydantic import BaseModel, Field
+
+from wombwise_voice import is_voice_configured, synthesize_speech, voice_status
 
 from demo_data import get_demo_payload, get_shield_demo_payload
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
@@ -186,6 +189,34 @@ def run_interactive_assessment(payload: AssessmentInput) -> dict:
     """Interactive assessment: symptoms + profile + lifestyle + blood markers."""
     try:
         return analyze_assessment_dict(payload)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+class VoiceRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+
+
+@app.get("/api/v1/voice/status")
+def get_voice_status() -> dict:
+    """Return whether ElevenLabs voice booking is configured."""
+    return voice_status()
+
+
+@app.post("/api/v1/voice/speak")
+def speak_booking_script(request: VoiceRequest) -> Response:
+    """Generate MP3 audio for WombWise voice booking demo."""
+    if not is_voice_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="ElevenLabs not configured. Frontend will use browser voice fallback.",
+        )
+
+    try:
+        audio = synthesize_speech(request.text)
+        return Response(content=audio, media_type="audio/mpeg")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
