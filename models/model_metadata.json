@@ -1,0 +1,19 @@
+{
+  "model_type": "GradientBoostingClassifier",
+  "auc": 0.9949,
+  "features": [
+    "age",
+    "bmi",
+    "family_history",
+    "heavy_bleeding",
+    "pelvic_pain_severity",
+    "anemia",
+    "fibroid_count",
+    "largest_fibroid_cm",
+    "african_ancestry",
+    "nulliparity"
+  ],
+  "target": "high_risk",
+  "n_train": 2250,
+  "n_test": 750
+}
