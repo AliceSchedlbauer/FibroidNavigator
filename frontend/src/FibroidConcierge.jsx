@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AssessmentPanel from "./AssessmentPanel";
 import BleedingChart from "./BleedingChart";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -242,6 +243,13 @@ function FibroidConcierge() {
         >
           Risk Assessment
         </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === "assessment" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("assessment")}
+        >
+          Full Assessment
+        </button>
       </nav>
 
       <main className="main">
@@ -447,6 +455,8 @@ function FibroidConcierge() {
               )}
             </section>
           </>
+        ) : activeTab === "assessment" ? (
+          <AssessmentPanel />
         ) : (
           <>
             <section className="card form-card">

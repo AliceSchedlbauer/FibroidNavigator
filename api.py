@@ -15,6 +15,11 @@ from fibroid_x_predict_voicing import (
     end_to_end_flow,
     voicing_for_appointments,
 )
+from wombwise_assessment import (
+    DEMO_ASSESSMENT_INPUT,
+    AssessmentInput,
+    analyze_assessment_dict,
+)
 
 app = FastAPI(
     title="WombWise API",
@@ -118,6 +123,28 @@ def get_shield_demo() -> dict:
     """Demo daily check-in: luteal phase + stress + red meat."""
     try:
         return get_shield_demo_payload()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/assessment")
+def run_interactive_assessment(payload: AssessmentInput) -> dict:
+    """Interactive assessment: symptoms + profile + lifestyle + blood markers."""
+    try:
+        return analyze_assessment_dict(payload)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/assessment/demo")
+def get_assessment_demo() -> dict:
+    """Return a complete high-risk assessment demo payload."""
+    try:
+        return {
+            "label": "Demo: full WombWise assessment",
+            "input": DEMO_ASSESSMENT_INPUT.model_dump(),
+            "result": analyze_assessment_dict(DEMO_ASSESSMENT_INPUT),
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

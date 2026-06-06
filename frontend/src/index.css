@@ -643,3 +643,114 @@ textarea {
 .food-protect li {
   color: #166534;
 }
+
+.assessment-form-card {
+  max-height: none;
+}
+
+.assessment-section {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fbfdfb;
+}
+
+.assessment-section h3 {
+  margin: 0 0 0.85rem;
+  color: var(--color-primary-dark);
+  font-size: 0.98rem;
+}
+
+.assessment-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 0.85rem;
+}
+
+.assessment-checkbox-grid.compact {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 620px) {
+  .assessment-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.blood-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 620px) {
+  .blood-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-hint {
+  color: var(--color-muted);
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+
+.category-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.category-score-card {
+  padding: 0.85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.category-score-card span {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.category-score-card strong {
+  display: block;
+  margin: 0.25rem 0 0.45rem;
+  font-size: 1.2rem;
+}
+
+.mini-progress {
+  height: 8px;
+  overflow: hidden;
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.mini-progress div {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.urgent-card {
+  padding: 1rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #9a3412;
+}
+
+.urgent-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.urgent-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+}
