@@ -21,7 +21,14 @@ python api.py                 # starts API on http://127.0.0.1:8000
 
 ```bash
 curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/api/v1/demo
+curl -X POST http://127.0.0.1:8000/api/v1/risk -H "Content-Type: application/json" -d "{\"age\":32,\"bmi\":28.5,\"family_history\":true,\"heavy_bleeding\":true,\"pelvic_pain_severity\":7,\"anemia\":true,\"fibroid_count\":3,\"largest_fibroid_cm\":5.8,\"african_ancestry\":true,\"nulliparity\":false}"
 ```
+
+### Demo Patient
+
+Click **Load Demo Patient** in the UI or call `GET /api/v1/demo` for the showcase case:
+Black woman, age 32, **87% risk**, with a 28-day menstrual bleeding chart.
 
 ### 3. Frontend
 

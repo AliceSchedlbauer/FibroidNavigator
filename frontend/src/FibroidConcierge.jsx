@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BleedingChart from "./BleedingChart";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -24,6 +25,8 @@ const CATEGORY_COLORS = {
 function FibroidConcierge() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [result, setResult] = useState(null);
+  const [bleedingData, setBleedingData] = useState(null);
+  const [demoLabel, setDemoLabel] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [apiStatus, setApiStatus] = useState(null);
@@ -50,6 +53,8 @@ function FibroidConcierge() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setBleedingData(null);
+    setDemoLabel(null);
 
     try {
       const res = await fetch(`${API_BASE}/api/v1/risk`, {
@@ -65,6 +70,32 @@ function FibroidConcierge() {
 
       const data = await res.json();
       setResult(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDemoPatient = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setBleedingData(null);
+    setDemoLabel(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/demo`);
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(detail.detail ?? `Demo load failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      setForm(data.patient);
+      setResult(data.risk);
+      setBleedingData(data.bleeding_chart);
+      setDemoLabel(data.label);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -191,6 +222,14 @@ function FibroidConcierge() {
               <button
                 type="button"
                 className="btn-secondary"
+                onClick={loadDemoPatient}
+                disabled={loading}
+              >
+                Load Demo Patient
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
                 onClick={checkHealth}
               >
                 Check API
@@ -201,6 +240,13 @@ function FibroidConcierge() {
 
         <section className="card result-card">
           <h2>Risk Assessment</h2>
+
+          {demoLabel && (
+            <div className="demo-banner">
+              <strong>{demoLabel}</strong>
+              <span>87% risk · showcase case with bleeding chart</span>
+            </div>
+          )}
 
           {error && (
             <div className="alert alert-error">
@@ -220,8 +266,8 @@ function FibroidConcierge() {
 
           {!result && !error && (
             <p className="placeholder">
-              Submit patient data to see risk score, category, and clinical
-              recommendation.
+              Submit patient data or load the demo patient to see risk score,
+              category, and clinical recommendation.
             </p>
           )}
 
@@ -258,6 +304,13 @@ function FibroidConcierge() {
                 <h3>Recommendation</h3>
                 <p>{result.recommendation}</p>
               </div>
+
+              {bleedingData && (
+                <div className="bleeding-section">
+                  <h3>Bleeding Pattern</h3>
+                  <BleedingChart data={bleedingData} />
+                </div>
+              )}
             </div>
           )}
         </section>

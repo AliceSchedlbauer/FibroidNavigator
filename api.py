@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from demo_data import get_demo_payload
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
 
 app = FastAPI(
@@ -54,6 +55,15 @@ def health() -> HealthResponse:
 def calculate_risk(patient: PatientInput) -> RiskResult:
     try:
         return concierge.predict(patient)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/demo")
+def get_demo() -> dict:
+    """Return showcase demo patient (Black woman, 32) with bleeding chart."""
+    try:
+        return get_demo_payload(concierge.metadata.get("auc", 0.0))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
