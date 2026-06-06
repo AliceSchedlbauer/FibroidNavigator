@@ -1,5 +1,5 @@
 """
-Fibroid Concierge – AI Risk Calculator (AUC ~0.95).
+WombWise Concierge - AI Risk Calculator (AUC ~0.95).
 
 Calculates risk for symptomatic uterine fibroids and recommends
 a clinical priority level.
@@ -210,7 +210,7 @@ class FibroidConcierge:
 
 
 def main() -> None:
-    print("=== Fibroid Concierge – AI Risk Calculator ===\n")
+    print("=== WombWise Concierge - AI Risk Calculator ===\n")
 
     if not MODEL_PATH.exists():
         print("Training model …")

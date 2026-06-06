@@ -1,8 +1,8 @@
 """
-Fibroid Shield – Daily cycle-based prevention engine.
+WombWise - Daily cycle-based prevention engine.
 
 Takes 3 daily inputs (cycle day, stress, food log) and returns
-estrogen risk level, 3 micro-actions, and weekly shield score.
+estrogen risk level, 3 micro-actions, and weekly WombWise score.
 """
 
 from __future__ import annotations
@@ -171,13 +171,13 @@ def analyze_food_log(food_log: str) -> dict[str, Any]:
             food_delta += delta
 
     if not risk_items and not protective_items:
-        assessment = "Neutral diet — no strong fibroid triggers or protectors detected."
+        assessment = "Neutral diet — no strong fibroid triggers or protectors detected"
     elif food_delta > 10:
-        assessment = "Today's food choices may elevate estrogen and inflammation risk."
+        assessment = "Today's food choices may elevate estrogen and inflammation risk"
     elif food_delta < -5:
-        assessment = "Today's food choices support estrogen balance and fibroid prevention."
+        assessment = "Today's food choices support estrogen balance and fibroid prevention"
     else:
-        assessment = "Mixed diet — some protective choices, room for improvement."
+        assessment = "Mixed diet — some protective choices, room for improvement"
 
     return {
         "risk_items": risk_items,
@@ -234,7 +234,7 @@ def _risk_level(score: int) -> str:
 
 
 def analyze_daily_shield(checkin: ShieldInput) -> ShieldResult:
-    """Core Fibroid Shield analysis: cycle + stress + food → daily guidance."""
+    """Core WombWise analysis: cycle + stress + food -> daily guidance."""
     cycle_phase = get_cycle_phase(checkin.cycle_day)
     base_risk = _base_cycle_risk(checkin.cycle_day)
     stress_mult = _stress_multiplier(checkin.stress_level)
@@ -262,11 +262,7 @@ def analyze_daily_shield(checkin: ShieldInput) -> ShieldResult:
     if checkin.vitamin_d_supplement:
         explanation_parts.append("Vitamin D supplement provides protective benefit.")
 
-    explanation = (
-        f"{estrogen_label} — "
-        + "; ".join(explanation_parts)
-        + "."
-    )
+    explanation = f"{estrogen_label} — {'; '.join(explanation_parts)}"
 
     three_actions = _pick_actions(cycle_phase, checkin.stress_level, food_analysis)
 
@@ -297,7 +293,7 @@ DEMO_SHIELD_INPUT = ShieldInput(
 
 
 def main() -> None:
-    print("=== Fibroid Shield – Daily Prevention Engine ===\n")
+    print("=== WombWise - Daily Prevention Engine ===\n")
 
     result = analyze_daily_shield(DEMO_SHIELD_INPUT)
     print("Demo check-in (cycle day 22, stress 4, red meat):")

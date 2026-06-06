@@ -1,5 +1,5 @@
 """
-FastAPI endpoint for Fibroid Shield – combined prevention + risk platform.
+FastAPI endpoint for WombWise - combined prevention + risk platform.
 """
 
 from fastapi import FastAPI, HTTPException
@@ -16,8 +16,8 @@ from fibroid_x_predict_voicing import (
 )
 
 app = FastAPI(
-    title="Fibroid Shield API",
-    description="Cycle-based prevention + AI risk calculator for uterine fibroids",
+    title="WombWise API",
+    description="Cycle-based fibroid prevention, AI risk scoring, and specialist matching",
     version="2.0.0",
 )
 
@@ -104,7 +104,7 @@ def get_appointments(region: str, risk_level: str) -> dict:
 
 @app.post("/analyze")
 def analyze_daily_checkin(checkin: ShieldInput) -> dict:
-    """Fibroid Shield daily check-in: cycle + stress + food → micro-actions."""
+    """WombWise daily check-in: cycle + stress + food -> micro-actions."""
     try:
         return analyze_dict(checkin)
     except Exception as exc:

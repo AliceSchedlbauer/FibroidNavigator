@@ -1,5 +1,5 @@
 """
-Demo test data for Fibroid Concierge.
+Demo test data for WombWise.
 
 Showcase patient: Black woman, age 32, ~87% fibroid risk with
 documented heavy menstrual bleeding pattern.
@@ -127,7 +127,7 @@ def get_demo_payload(model_auc: float) -> dict:
 
 
 def get_shield_demo_payload() -> dict:
-    """Demo daily check-in for Fibroid Shield prevention engine."""
+    """Demo daily check-in for WombWise prevention engine."""
     from fibroid_shield import DEMO_SHIELD_INPUT, analyze_dict
 
     return {

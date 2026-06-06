@@ -1,5 +1,5 @@
 """
-Fibroid Navigator – End-to-End MVP.
+WombWise - End-to-End MVP.
 
 Combines AI risk prediction (AUC ~0.95) with specialist appointment
 matching by region and risk level.
@@ -154,14 +154,14 @@ def end_to_end_flow(
 
 
 def main() -> None:
-    from demo_data import DEMO_PATIENT
+    from demo_data import build_demo_flow
 
-    print("=== Fibroid Navigator – End-to-End MVP ===\n")
+    print("=== WombWise - End-to-End MVP ===\n")
 
     concierge = FibroidConcierge()
-    result = end_to_end_flow(DEMO_PATIENT, "Germany", concierge)
+    result = build_demo_flow(concierge.metadata.get("auc", 0.0), "Germany")
 
-    print("Demo: Black woman, age 32, Germany")
+    print("Demo: Black woman, age 32, Germany, 87% risk")
     print(json.dumps(result, indent=2))
 
 

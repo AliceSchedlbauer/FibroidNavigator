@@ -1,14 +1,14 @@
-# Fibroid Shield
+# WombWise
 
 Cycle-based fibroid prevention + AI risk calculator for uterine fibroids.
 
-**One-liner:** Fibroid Shield tells women what to eat, how to manage stress, and what to do today — based on their cycle phase — to actively slow fibroid growth before it starts.
+**One-liner:** WombWise tells women at fibroid risk what to eat, how to manage stress, and what to do today based on their cycle phase, then helps high-risk users find specialist care.
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| **Daily Shield** | Cycle day + stress + food log → estrogen risk + 3 micro-actions |
+| **Daily Check-in** | Cycle day + stress + food log -> estrogen risk + 3 micro-actions |
 | **Risk Calculator** | AUC ~0.95 Gradient Boosting model for clinical risk assessment |
 | **Appointment Matching** | Specialist booking by region (Germany, UK, USA) |
 | **Bleeding Chart** | Canvas-based 28-day menstrual flow visualization |
@@ -53,8 +53,8 @@ The Vite dev server proxies `/api`, `/health`, and `/analyze` to the backend.
 
 ## Demo Scenarios
 
-- **Daily Shield:** Click "Load Demo Check-in" — late luteal phase, high stress, red meat
-- **Risk Assessment:** Click "Load Demo Patient" — Black woman, age 32, 87% risk with bleeding chart
+- **Daily Check-in:** Click "Load Demo Check-in" - late luteal phase, high stress, red meat
+- **Risk Assessment:** Click "Load Demo Patient" - Black woman, age 32, 87% risk with bleeding chart
 
 ## Disclaimer
 
