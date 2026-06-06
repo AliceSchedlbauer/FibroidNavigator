@@ -4,6 +4,11 @@ import BleedingChart from "./BleedingChart";
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 const REGIONS = ["Germany", "UK", "USA"];
+const CITY_OPTIONS = {
+  Germany: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt"],
+  UK: ["London", "Manchester"],
+  USA: ["New York", "Los Angeles"],
+};
 const STRESS_EMOJIS = ["😌", "🙂", "😐", "😟", "😰"];
 const ACTION_ICONS = ["🍵", "🚶", "🥦"];
 
@@ -44,6 +49,7 @@ function FibroidConcierge() {
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [region, setRegion] = useState("Germany");
+  const [city, setCity] = useState("Berlin");
   const [result, setResult] = useState(null);
   const [flow, setFlow] = useState(null);
   const [bleedingData, setBleedingData] = useState(null);
@@ -63,6 +69,11 @@ function FibroidConcierge() {
 
   const updateShieldField = (field, value) => {
     setShieldForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateRegion = (nextRegion) => {
+    setRegion(nextRegion);
+    setCity(CITY_OPTIONS[nextRegion]?.[0] ?? "");
   };
 
   const checkHealth = async () => {
@@ -142,7 +153,7 @@ function FibroidConcierge() {
       const res = await fetch(`${API_BASE}/api/v1/flow`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patient: form, region }),
+        body: JSON.stringify({ patient: form, region, city }),
       });
 
       if (!res.ok) {
@@ -185,6 +196,7 @@ function FibroidConcierge() {
       const data = await res.json();
       setForm(data.patient);
       setRegion("Germany");
+      setCity(data.flow?.city ?? "Berlin");
       setResult(data.risk);
       setFlow(data.flow ?? null);
       setBleedingData(data.bleeding_chart);
@@ -519,11 +531,27 @@ function FibroidConcierge() {
                   Region
                   <select
                     value={region}
-                    onChange={(e) => setRegion(e.target.value)}
+                    onChange={(e) => updateRegion(e.target.value)}
                   >
                     {REGIONS.map((r) => (
                       <option key={r} value={r}>
                         {r}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="region-select">
+                  {region === "Germany"
+                    ? "German city for gynecology specialist"
+                    : "City"}
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  >
+                    {(CITY_OPTIONS[region] ?? []).map((option) => (
+                      <option key={option} value={option}>
+                        {option}
                       </option>
                     ))}
                   </select>
@@ -659,6 +687,10 @@ function FibroidConcierge() {
                             <dd>{flow.appointment.specialty}</dd>
                           </div>
                           <div>
+                            <dt>Booking</dt>
+                            <dd>{flow.appointment.booking_provider}</dd>
+                          </div>
+                          <div>
                             <dt>Wait time</dt>
                             <dd>{flow.appointment.wait_time}</dd>
                           </div>
@@ -669,9 +701,20 @@ function FibroidConcierge() {
                         </dl>
                       )}
                       {flow.appointment?.voicing_script && (
-                        <blockquote className="voicing-script">
-                          {flow.appointment.voicing_script}
-                        </blockquote>
+                        <div className="voice-booking-card">
+                          <span className="voice-label">Voice booking demo</span>
+                          <blockquote className="voicing-script">
+                            {flow.appointment.voicing_script}
+                          </blockquote>
+                          <a
+                            className="booking-link"
+                            href={flow.appointment.booking_link}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open {flow.appointment.booking_provider}
+                          </a>
+                        </div>
                       )}
                       <p className="combined-action">
                         <strong>Next step:</strong> {flow.action}

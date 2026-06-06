@@ -13,24 +13,93 @@ from typing import Any
 
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
 
-# Specialist database: USA Fibroid Centers + UFE specialists
+# Specialist database: gynecology + UFE specialists.
 SPECIALISTS: dict[str, list[dict[str, Any]]] = {
     "Germany": [
-        {"name": "Dr. Schmidt", "city": "Berlin", "specialty": "UFE", "wait_weeks": 2},
-        {"name": "Dr. Müller", "city": "Munich", "specialty": "Myomectomy", "wait_weeks": 3},
-        {"name": "Dr. Weber", "city": "Hamburg", "specialty": "UFE", "wait_weeks": 1},
+        {
+            "name": "Dr. Anna Schmidt",
+            "city": "Berlin",
+            "specialty": "Gynecology + UFE referral",
+            "wait_weeks": 1,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/berlin",
+        },
+        {
+            "name": "Dr. Lena Weber",
+            "city": "Hamburg",
+            "specialty": "Gynecology + fibroid consultation",
+            "wait_weeks": 1,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/hamburg",
+        },
+        {
+            "name": "Dr. Marie Keller",
+            "city": "Munich",
+            "specialty": "Gynecology + myomectomy consult",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/muenchen",
+        },
+        {
+            "name": "Dr. Sarah Hoffmann",
+            "city": "Cologne",
+            "specialty": "Gynecology + heavy bleeding clinic",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/koeln",
+        },
+        {
+            "name": "Dr. Nina Wagner",
+            "city": "Frankfurt",
+            "specialty": "Gynecology + minimally invasive fibroid care",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/frankfurt-am-main",
+        },
     ],
     "UK": [
-        {"name": "Dr. Johnson", "city": "London", "specialty": "UFE", "wait_weeks": 4},
-        {"name": "Dr. Smith", "city": "Manchester", "specialty": "Myomectomy", "wait_weeks": 6},
+        {
+            "name": "Dr. Johnson",
+            "city": "London",
+            "specialty": "UFE",
+            "wait_weeks": 4,
+            "booking_provider": "Private clinic",
+            "booking_link": "https://booking.example.com/london-ufe",
+        },
+        {
+            "name": "Dr. Smith",
+            "city": "Manchester",
+            "specialty": "Myomectomy",
+            "wait_weeks": 6,
+            "booking_provider": "Private clinic",
+            "booking_link": "https://booking.example.com/manchester-myomectomy",
+        },
     ],
     "USA": [
-        {"name": "USA Fibroid Centers – NYC", "city": "New York", "specialty": "UFE", "wait_weeks": 1},
-        {"name": "USA Fibroid Centers – LA", "city": "Los Angeles", "specialty": "UFE", "wait_weeks": 1},
+        {
+            "name": "USA Fibroid Centers - NYC",
+            "city": "New York",
+            "specialty": "UFE",
+            "wait_weeks": 1,
+            "booking_provider": "USA Fibroid Centers",
+            "booking_link": "https://www.usafibroidcenters.com/locations/new-york/",
+        },
+        {
+            "name": "USA Fibroid Centers - LA",
+            "city": "Los Angeles",
+            "specialty": "UFE",
+            "wait_weeks": 1,
+            "booking_provider": "USA Fibroid Centers",
+            "booking_link": "https://www.usafibroidcenters.com/locations/california/",
+        },
     ],
 }
 
 SUPPORTED_REGIONS = list(SPECIALISTS.keys())
+SUPPORTED_CITIES = {
+    region: sorted({specialist["city"] for specialist in specialists})
+    for region, specialists in SPECIALISTS.items()
+}
 
 
 def _risk_level_from_percent(risk_percent: float) -> str:
@@ -72,7 +141,11 @@ def fibroid_risk_score(patient: PatientInput, concierge: FibroidConcierge | None
     }
 
 
-def voicing_for_appointments(region: str, risk_level: str) -> dict[str, Any]:
+def voicing_for_appointments(
+    region: str,
+    risk_level: str,
+    city: str | None = None,
+) -> dict[str, Any]:
     """
     Step 2: Match patient to nearest specialist with appointment in <2 weeks
     for high-risk cases (not 65-week NHS waits).
@@ -81,6 +154,7 @@ def voicing_for_appointments(region: str, risk_level: str) -> dict[str, Any]:
         return {
             "error": f"Region '{region}' not supported. Choose: {', '.join(SUPPORTED_REGIONS)}",
             "supported_regions": SUPPORTED_REGIONS,
+            "supported_cities": SUPPORTED_CITIES,
         }
 
     if risk_level == "HIGH":
@@ -93,9 +167,21 @@ def voicing_for_appointments(region: str, risk_level: str) -> dict[str, Any]:
         priority = "ROUTINE"
         max_wait_weeks = 6
 
-    available = [
-        s for s in SPECIALISTS[region] if s["wait_weeks"] <= max_wait_weeks
-    ]
+    region_specialists = SPECIALISTS[region]
+    if city:
+        region_specialists = [
+            s for s in region_specialists if s["city"].lower() == city.lower()
+        ]
+        if not region_specialists:
+            return {
+                "error": f"No specialist configured for {city}, {region}",
+                "supported_cities": SUPPORTED_CITIES.get(region, []),
+                "priority": priority,
+                "region": region,
+                "city": city,
+            }
+
+    available = [s for s in region_specialists if s["wait_weeks"] <= max_wait_weeks]
     available.sort(key=lambda s: s["wait_weeks"])
 
     if available:
@@ -109,32 +195,36 @@ def voicing_for_appointments(region: str, risk_level: str) -> dict[str, Any]:
             "wait_weeks": best["wait_weeks"],
             "priority": priority,
             "region": region,
-            "booking_link": f"https://booking.example.com/{best['name'].replace(' ', '-').lower()}",
+            "booking_provider": best["booking_provider"],
+            "booking_link": best["booking_link"],
             "voicing_script": (
-                f"Based on your elevated fibroid risk, I recommend booking with "
-                f"{best['name']} in {best['city']} for {best['specialty']}. "
-                f"The earliest available appointment is in {wait_time}."
+                f"Hi, I am WombWise. Based on your elevated fibroid risk, I found "
+                f"{best['name']}, a {best['specialty']} specialist in {best['city']}. "
+                f"The earliest {best['booking_provider']} appointment is in {wait_time}. "
+                f"Would you like me to open the booking link and reserve the next available slot?"
             ),
         }
 
     return {
-        "error": f"No specialist available within {max_wait_weeks} weeks in {region}",
+        "error": f"No specialist available within {max_wait_weeks} weeks in {city or region}",
         "alternative": "Consider a private clinic in the nearest major city",
         "wait_time": _wait_label(4),
         "priority": priority,
         "region": region,
+        "city": city,
     }
 
 
 def end_to_end_flow(
     patient: PatientInput,
     region: str,
+    city: str | None = None,
     concierge: FibroidConcierge | None = None,
 ) -> dict[str, Any]:
     """Step 3: Combine risk prediction and specialist appointment matching."""
     risk_result = fibroid_risk_score(patient, concierge)
     risk_level = _risk_level_from_percent(risk_result["risk_percent"])
-    appointment = voicing_for_appointments(region, risk_level)
+    appointment = voicing_for_appointments(region, risk_level, city)
 
     if "error" in appointment:
         combined_action = f"{risk_result['action']} · {appointment['error']}"
@@ -149,6 +239,7 @@ def end_to_end_flow(
         "appointment": appointment,
         "risk_level": risk_level,
         "region": region,
+        "city": city,
         "action": combined_action,
     }
 

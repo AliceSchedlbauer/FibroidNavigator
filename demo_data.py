@@ -83,12 +83,12 @@ def build_demo_risk_result(model_auc: float) -> RiskResult:
     )
 
 
-def build_demo_flow(model_auc: float, region: str = "Germany") -> dict:
+def build_demo_flow(model_auc: float, region: str = "Germany", city: str = "Berlin") -> dict:
     """End-to-end flow using the fixed 87% showcase risk for the demo patient."""
     from fibroid_x_predict_voicing import voicing_for_appointments
 
     risk = build_demo_risk_result(model_auc)
-    appointment = voicing_for_appointments(region, "HIGH")
+    appointment = voicing_for_appointments(region, "HIGH", city)
 
     return {
         "risk": {
@@ -106,6 +106,7 @@ def build_demo_flow(model_auc: float, region: str = "Germany") -> dict:
         "appointment": appointment,
         "risk_level": "HIGH",
         "region": region,
+        "city": city,
         "action": (
             f"Schedule pelvic ultrasound within 2 weeks. · Book with "
             f"{appointment['specialist']} in {appointment['wait_time']} "

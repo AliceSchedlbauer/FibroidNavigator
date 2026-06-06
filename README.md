@@ -11,13 +11,13 @@ Cycle-based fibroid prevention + AI risk calculator for uterine fibroids.
 | **Daily Check-in** | Cycle day + stress + food log -> estrogen risk + 3 micro-actions |
 | **Risk Calculator** | AUC ~0.95 Gradient Boosting model for clinical risk assessment |
 | **Appointment Matching** | Specialist booking by region (Germany, UK, USA) |
-| **Bleeding Chart** | Canvas-based 28-day menstrual flow visualization |
+| **Bleeding Chart** | Interactive Plotly 28-day menstrual flow visualization |
 | **Demo Patient** | Black woman, age 32, 87% risk showcase case |
 
 ## Stack
 
 - **Backend:** Python, scikit-learn, FastAPI
-- **Frontend:** React + Vite (deep green + warm white aesthetic)
+- **Frontend:** React + Vite + Plotly (deep green + warm white aesthetic)
 
 ## Quick Start
 

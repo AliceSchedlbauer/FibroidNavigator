@@ -10,6 +10,7 @@ from demo_data import get_demo_payload, get_shield_demo_payload
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
 from fibroid_shield import ShieldInput, analyze_dict
 from fibroid_x_predict_voicing import (
+    SUPPORTED_CITIES,
     SUPPORTED_REGIONS,
     end_to_end_flow,
     voicing_for_appointments,
@@ -77,27 +78,28 @@ def get_demo() -> dict:
 class FlowRequest(BaseModel):
     patient: PatientInput
     region: str = "Germany"
+    city: str | None = "Berlin"
 
 
 @app.get("/api/v1/regions")
 def list_regions() -> dict:
-    return {"regions": SUPPORTED_REGIONS}
+    return {"regions": SUPPORTED_REGIONS, "cities": SUPPORTED_CITIES}
 
 
 @app.post("/api/v1/flow")
 def run_end_to_end_flow(request: FlowRequest) -> dict:
     """Full pipeline: risk prediction + specialist appointment matching."""
     try:
-        return end_to_end_flow(request.patient, request.region, concierge)
+        return end_to_end_flow(request.patient, request.region, request.city, concierge)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/appointments/{region}/{risk_level}")
-def get_appointments(region: str, risk_level: str) -> dict:
+def get_appointments(region: str, risk_level: str, city: str | None = None) -> dict:
     """Specialist matching by region and risk level (HIGH/MEDIUM/LOW)."""
     try:
-        return voicing_for_appointments(region, risk_level.upper())
+        return voicing_for_appointments(region, risk_level.upper(), city)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
