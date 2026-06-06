@@ -40,7 +40,8 @@ curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/api/v1/demo
 curl http://127.0.0.1:8000/api/v1/shield/demo
 curl http://127.0.0.1:8000/api/v1/assessment/demo
-curl -X POST http://127.0.0.1:8000/analyze -H "Content-Type: application/json" -d "{\"cycle_day\":22,\"stress_level\":4,\"food_log\":\"Coffee, steak with fries, glass of wine\",\"vitamin_d_supplement\":false}"
+curl -X POST http://127.0.0.1:8000/api/v1/cycle/calculate -H "Content-Type: application/json" -d "{\"last_period_start\":\"2026-05-18\",\"previous_period_start\":\"2026-04-19\",\"reference_date\":\"2026-06-06\"}"
+curl -X POST http://127.0.0.1:8000/analyze -H "Content-Type: application/json" -d "{\"last_period_start\":\"2026-05-18\",\"previous_period_start\":\"2026-04-19\",\"stress_level\":4,\"food_log\":\"Coffee, steak with fries, glass of wine\",\"vitamin_d_supplement\":false,\"region\":\"Germany\",\"city\":\"Hamburg\"}"
 curl -X POST http://127.0.0.1:8000/api/v1/flow -H "Content-Type: application/json" -d "{\"patient\":{\"age\":32,\"bmi\":28.5,\"family_history\":true,\"heavy_bleeding\":true,\"pelvic_pain_severity\":7,\"anemia\":true,\"fibroid_count\":3,\"largest_fibroid_cm\":5.8,\"african_ancestry\":true,\"nulliparity\":false},\"region\":\"Germany\"}"
 ```
 

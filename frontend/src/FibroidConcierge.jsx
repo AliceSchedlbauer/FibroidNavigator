@@ -1,12 +1,33 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import AssessmentPanel from "./AssessmentPanel";
 import BleedingChart from "./BleedingChart";
+import DevicePreview from "./DevicePreview";
+import { calculateCycleInfo, formatDisplayDate } from "./cycleUtils";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 const REGIONS = ["Germany", "UK", "USA"];
 const CITY_OPTIONS = {
-  Germany: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt"],
+  Germany: [
+    "Berlin",
+    "Hamburg",
+    "Munich",
+    "Cologne",
+    "Frankfurt",
+    "Stuttgart",
+    "Dusseldorf",
+    "Dresden",
+    "Hannover",
+    "Bremen",
+    "Wiesbaden",
+    "Mainz",
+    "Potsdam",
+    "Kiel",
+    "Erfurt",
+    "Magdeburg",
+    "Saarbrucken",
+    "Schwerin",
+  ],
   UK: ["London", "Manchester"],
   USA: ["New York", "Los Angeles"],
 };
@@ -27,10 +48,14 @@ const INITIAL_FORM = {
 };
 
 const INITIAL_SHIELD = {
-  cycle_day: 22,
-  stress_level: 3,
+  last_period_start: "2026-05-18",
+  previous_period_start: "2026-04-19",
+  cycle_day: 20,
+  stress_level: 4,
   food_log: "",
   vitamin_d_supplement: false,
+  region: "Germany",
+  city: "Hamburg",
 };
 
 const CATEGORY_COLORS = {
@@ -45,8 +70,37 @@ const SHIELD_COLORS = {
   LOW: { bg: "#d1fae5", border: "#059669", text: "#065f46", bar: "#059669" },
 };
 
+function WombWiseLogo() {
+  return (
+    <div className="brand-lockup" aria-label="WombWise">
+      <div className="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" role="img" focusable="false">
+          <path
+            className="logo-shield"
+            d="M32 5l20 8v15c0 14.4-8.3 25.2-20 31-11.7-5.8-20-16.6-20-31V13l20-8z"
+          />
+          <path
+            className="logo-womb"
+            d="M20 25c0 8 5.2 14 12 14s12-6 12-14"
+          />
+          <path
+            className="logo-leaf"
+            d="M32 38c0-9 5-15 13-17-1 8-6 14-13 17z"
+          />
+          <path className="logo-stem" d="M32 38c0-7-4-12-10-15" />
+        </svg>
+      </div>
+      <div>
+        <span className="brand-name">WombWise</span>
+        <span className="brand-tagline">Fibroid prevention shield</span>
+      </div>
+    </div>
+  );
+}
+
 function FibroidConcierge() {
   const [activeTab, setActiveTab] = useState("shield");
+  const [previewMode, setPreviewMode] = useState("desktop");
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [region, setRegion] = useState("Germany");
@@ -58,7 +112,17 @@ function FibroidConcierge() {
 
   const [shieldForm, setShieldForm] = useState(INITIAL_SHIELD);
   const [shieldResult, setShieldResult] = useState(null);
+  const [shieldCycleInfo, setShieldCycleInfo] = useState(null);
   const [shieldDemoLabel, setShieldDemoLabel] = useState(null);
+
+  const localCycleInfo = useMemo(
+    () =>
+      calculateCycleInfo({
+        lastPeriodStart: shieldForm.last_period_start,
+        previousPeriodStart: shieldForm.previous_period_start,
+      }),
+    [shieldForm.last_period_start, shieldForm.previous_period_start]
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -95,13 +159,19 @@ function FibroidConcierge() {
     setLoading(true);
     setError(null);
     setShieldResult(null);
+    setShieldCycleInfo(null);
     setShieldDemoLabel(null);
 
     try {
+      const payload = {
+        ...shieldForm,
+        cycle_day: localCycleInfo?.cycle_day ?? shieldForm.cycle_day,
+      };
+
       const res = await fetch(`${API_BASE}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(shieldForm),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -110,6 +180,9 @@ function FibroidConcierge() {
       }
 
       setShieldResult(await res.json());
+      if (localCycleInfo && !localCycleInfo.error) {
+        setShieldCycleInfo(localCycleInfo);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -121,6 +194,7 @@ function FibroidConcierge() {
     setLoading(true);
     setError(null);
     setShieldResult(null);
+    setShieldCycleInfo(null);
     setShieldDemoLabel(null);
 
     try {
@@ -133,6 +207,7 @@ function FibroidConcierge() {
       const data = await res.json();
       setShieldForm(data.input);
       setShieldResult(data.result);
+      setShieldCycleInfo(data.cycle_info ?? null);
       setShieldDemoLabel(data.label);
     } catch (err) {
       setError(err.message);
@@ -217,14 +292,55 @@ function FibroidConcierge() {
     ? SHIELD_COLORS[shieldResult.risk_level] ?? SHIELD_COLORS.LOW
     : null;
 
-  return (
-    <div className="app">
+  const activeCycleInfo = shieldCycleInfo ?? localCycleInfo;
+
+  const appContent = (
+    <>
       <header className="header">
         <div className="header-inner">
-          <h1>WombWise</h1>
-          <p className="subtitle">
-            Cycle-based prevention + AI risk calculator · AUC 0.95 model
-          </p>
+          <div className="hero-copy">
+            <WombWiseLogo />
+            <span className="eyebrow">Fibroid prevention, personalized daily</span>
+            <h1>WombWise</h1>
+            <p className="subtitle">
+              Cycle-based prevention + AI risk calculator · AUC 0.95 model
+            </p>
+            <div className="hero-pills" aria-label="Core app capabilities">
+              <span>Personalized cycle tracking</span>
+              <span>Blood marker insights</span>
+              <span>Doctolib-ready booking</span>
+            </div>
+            <div className="preview-toggle" role="group" aria-label="Layout preview">
+              <button
+                type="button"
+                className={`preview-btn ${previewMode === "desktop" ? "preview-active" : ""}`}
+                onClick={() => setPreviewMode("desktop")}
+              >
+                Desktop
+              </button>
+              <button
+                type="button"
+                className={`preview-btn ${previewMode === "mobile" ? "preview-active" : ""}`}
+                onClick={() => setPreviewMode("mobile")}
+              >
+                Mobile
+              </button>
+            </div>
+          </div>
+          <div className="hero-stats" aria-label="WombWise feature highlights">
+            <div>
+              <strong>30 sec</strong>
+              <span>daily check-in</span>
+            </div>
+            <div>
+              <strong>87%</strong>
+              <span>demo risk</span>
+            </div>
+            <div>
+              <strong>2 min</strong>
+              <span>voice booking</span>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -263,22 +379,59 @@ function FibroidConcierge() {
               </p>
 
               <form onSubmit={analyzeShield}>
-                <label className="shield-slider-label">
-                  Cycle day: <strong>{shieldForm.cycle_day}</strong>
-                  <input
-                    type="range"
-                    min={1}
-                    max={28}
-                    value={shieldForm.cycle_day}
-                    onChange={(e) =>
-                      updateShieldField("cycle_day", Number(e.target.value))
-                    }
-                  />
-                  <span className="range-hints">
-                    <span>Day 1</span>
-                    <span>Day 28</span>
-                  </span>
-                </label>
+                <div className="cycle-tracker-card">
+                  <h3>Your cycle</h3>
+                  <p className="card-desc">
+                    Enter when your last period started and the one before it.
+                    WombWise calculates your personal cycle length automatically.
+                  </p>
+                  <div className="form-grid">
+                    <label>
+                      Last period started
+                      <input
+                        type="date"
+                        value={shieldForm.last_period_start}
+                        onChange={(e) =>
+                          updateShieldField("last_period_start", e.target.value)
+                        }
+                        required
+                      />
+                    </label>
+                    <label>
+                      Previous period started
+                      <input
+                        type="date"
+                        value={shieldForm.previous_period_start}
+                        onChange={(e) =>
+                          updateShieldField("previous_period_start", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  {activeCycleInfo?.error && (
+                    <div className="alert alert-error">{activeCycleInfo.error}</div>
+                  )}
+
+                  {activeCycleInfo && !activeCycleInfo.error && (
+                    <div className="cycle-summary">
+                      <div>
+                        <span>Cycle length</span>
+                        <strong>{activeCycleInfo.cycle_length} days</strong>
+                      </div>
+                      <div>
+                        <span>Today</span>
+                        <strong>
+                          Day {activeCycleInfo.cycle_day} · {activeCycleInfo.cycle_phase}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>Next period</span>
+                        <strong>In ~{activeCycleInfo.days_until_next_period} days</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <label className="shield-stress-label">
                   Stress level
@@ -320,6 +473,43 @@ function FibroidConcierge() {
                   />
                   Taking Vitamin D supplement today
                 </label>
+
+                <div className="form-grid booking-grid">
+                  <label className="region-select">
+                    Region for specialist booking
+                    <select
+                      value={shieldForm.region}
+                      onChange={(e) => {
+                        updateShieldField("region", e.target.value);
+                        updateShieldField(
+                          "city",
+                          CITY_OPTIONS[e.target.value]?.[0] ?? ""
+                        );
+                      }}
+                    >
+                      {REGIONS.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="region-select">
+                    {shieldForm.region === "Germany"
+                      ? "German city for gynecology booking"
+                      : "City"}
+                    <select
+                      value={shieldForm.city}
+                      onChange={(e) => updateShieldField("city", e.target.value)}
+                    >
+                      {(CITY_OPTIONS[shieldForm.region] ?? []).map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
 
                 <div className="actions">
                   <button type="submit" className="btn-primary" disabled={loading}>
@@ -393,8 +583,13 @@ function FibroidConcierge() {
                     </span>
                     <span className="cycle-phase">
                       {shieldResult.cycle_phase} phase · Day{" "}
-                      {shieldForm.cycle_day}
+                      {shieldResult.cycle_day} of {shieldResult.cycle_length}
                     </span>
+                    {activeCycleInfo?.last_period_start && (
+                      <span className="cycle-phase">
+                        Last period: {formatDisplayDate(shieldForm.last_period_start)}
+                      </span>
+                    )}
                   </div>
 
                   <div className="shield-score-section">
@@ -451,6 +646,66 @@ function FibroidConcierge() {
                       )}
                     </div>
                   )}
+
+                  {shieldResult.appointment_recommendation &&
+                    !shieldResult.appointment_recommendation.error && (
+                      <div className="appointment-section">
+                        <h3>Book a Specialist Now</h3>
+                        <p className="shield-explanation">
+                          {shieldResult.book_specialist_prompt}
+                        </p>
+                        <dl className="appointment-details">
+                          <div>
+                            <dt>Specialist</dt>
+                            <dd>{shieldResult.appointment_recommendation.specialist}</dd>
+                          </div>
+                          <div>
+                            <dt>City</dt>
+                            <dd>{shieldResult.appointment_recommendation.city}</dd>
+                          </div>
+                          <div>
+                            <dt>Wait time</dt>
+                            <dd>{shieldResult.appointment_recommendation.wait_time}</dd>
+                          </div>
+                          <div>
+                            <dt>Provider</dt>
+                            <dd>{shieldResult.appointment_recommendation.booking_provider}</dd>
+                          </div>
+                        </dl>
+                        {shieldResult.appointment_recommendation.appointment_options?.length >
+                          0 && (
+                          <div className="slot-list">
+                            <span>Available demo slots</span>
+                            <div>
+                              {shieldResult.appointment_recommendation.appointment_options.map(
+                                (slot) => (
+                                  <button key={slot} type="button" className="slot-chip">
+                                    {slot}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {shieldResult.appointment_recommendation.voicing_script && (
+                          <div className="voice-booking-card">
+                            <span className="voice-label">Voice booking demo</span>
+                            <blockquote className="voicing-script">
+                              {shieldResult.appointment_recommendation.voicing_script}
+                            </blockquote>
+                            <a
+                              className="booking-link"
+                              href={shieldResult.appointment_recommendation.booking_link}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Open{" "}
+                              {shieldResult.appointment_recommendation.booking_provider}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                 </div>
               )}
             </section>
@@ -553,7 +808,7 @@ function FibroidConcierge() {
 
                 <label className="region-select">
                   {region === "Germany"
-                    ? "German city for gynecology specialist"
+                    ? "German city / state capital for gynecology specialist"
                     : "City"}
                   <select
                     value={city}
@@ -710,6 +965,18 @@ function FibroidConcierge() {
                           </div>
                         </dl>
                       )}
+                      {flow.appointment?.appointment_options?.length > 0 && (
+                        <div className="slot-list">
+                          <span>Available demo slots</span>
+                          <div>
+                            {flow.appointment.appointment_options.map((slot) => (
+                              <button key={slot} type="button" className="slot-chip">
+                                {slot}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {flow.appointment?.voicing_script && (
                         <div className="voice-booking-card">
                           <span className="voice-label">Voice booking demo</span>
@@ -751,6 +1018,12 @@ function FibroidConcierge() {
           professional medical advice.
         </p>
       </footer>
+    </>
+  );
+
+  return (
+    <div className={`app app-${previewMode}`}>
+      <DevicePreview mode={previewMode}>{appContent}</DevicePreview>
     </div>
   );
 }

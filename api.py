@@ -20,6 +20,7 @@ from wombwise_assessment import (
     AssessmentInput,
     analyze_assessment_dict,
 )
+from wombwise_cycle import CycleInput, ShieldCycleInput, calculate_cycle_info, cycle_info_dict
 
 app = FastAPI(
     title="WombWise API",
@@ -110,12 +111,65 @@ def get_appointments(region: str, risk_level: str, city: str | None = None) -> d
 
 
 @app.post("/analyze")
-def analyze_daily_checkin(checkin: ShieldInput) -> dict:
-    """WombWise daily check-in: cycle + stress + food -> micro-actions."""
+def analyze_daily_checkin(checkin: ShieldCycleInput) -> dict:
+    """WombWise daily check-in: personalized cycle + stress + food -> micro-actions."""
     try:
-        return analyze_dict(checkin)
+        cycle_info = None
+        cycle_day = checkin.cycle_day
+        cycle_length = 28
+
+        if checkin.last_period_start is not None:
+            cycle_info = cycle_info_dict(
+                CycleInput(
+                    last_period_start=checkin.last_period_start,
+                    previous_period_start=checkin.previous_period_start,
+                )
+            )
+            cycle_day = cycle_info["cycle_day"]
+            cycle_length = cycle_info["cycle_length"]
+        elif cycle_day is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Provide last_period_start or cycle_day.",
+            )
+
+        shield_input = ShieldInput(
+            cycle_day=cycle_day,
+            cycle_length=cycle_length,
+            last_period_start=checkin.last_period_start,
+            previous_period_start=checkin.previous_period_start,
+            stress_level=checkin.stress_level,
+            food_log=checkin.food_log,
+            vitamin_d_supplement=checkin.vitamin_d_supplement,
+        )
+        result = analyze_dict(shield_input, cycle_info)
+
+        if result["risk_level"] == "HIGH":
+            appointment = voicing_for_appointments(
+                checkin.region,
+                "HIGH",
+                checkin.city,
+            )
+            result["appointment_recommendation"] = appointment
+            result["book_specialist_prompt"] = (
+                "Your fibroid risk is elevated today. Would you like to book a "
+                f"gynecology specialist in {checkin.city or checkin.region}?"
+            )
+
+        return result
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/cycle/calculate")
+def calculate_personal_cycle(payload: CycleInput) -> dict:
+    """Calculate personalized cycle length, day, and phase from period dates."""
+    try:
+        return cycle_info_dict(payload)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/shield/demo")

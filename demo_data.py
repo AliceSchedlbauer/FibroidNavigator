@@ -8,6 +8,7 @@ documented heavy menstrual bleeding pattern.
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import date
 
 from fibroid_concierge import PatientInput, RiskResult
 
@@ -130,9 +131,25 @@ def get_demo_payload(model_auc: float) -> dict:
 def get_shield_demo_payload() -> dict:
     """Demo daily check-in for WombWise prevention engine."""
     from fibroid_shield import DEMO_SHIELD_INPUT, analyze_dict
+    from wombwise_cycle import CycleInput, cycle_info_dict
+
+    cycle_info = cycle_info_dict(
+        CycleInput(
+            last_period_start=DEMO_SHIELD_INPUT.last_period_start,
+            previous_period_start=DEMO_SHIELD_INPUT.previous_period_start,
+            reference_date=date(2026, 6, 6),
+        )
+    )
 
     return {
-        "label": "Demo: Late Luteal + High Stress + Red Meat",
-        "input": DEMO_SHIELD_INPUT.model_dump(),
-        "result": analyze_dict(DEMO_SHIELD_INPUT),
+        "label": "Demo: Day 18 + High Stress + Red Meat",
+        "input": {
+            **DEMO_SHIELD_INPUT.model_dump(),
+            "last_period_start": DEMO_SHIELD_INPUT.last_period_start.isoformat(),
+            "previous_period_start": DEMO_SHIELD_INPUT.previous_period_start.isoformat(),
+            "region": "Germany",
+            "city": "Hamburg",
+        },
+        "cycle_info": cycle_info,
+        "result": analyze_dict(DEMO_SHIELD_INPUT, cycle_info),
     }

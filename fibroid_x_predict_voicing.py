@@ -13,7 +13,8 @@ from typing import Any
 
 from fibroid_concierge import FibroidConcierge, PatientInput, RiskResult
 
-# Specialist database: gynecology + UFE specialists.
+# Demo specialist database: gynecology + UFE specialists.
+# Links open real Doctolib search pages; appointment slots are mock demo slots.
 SPECIALISTS: dict[str, list[dict[str, Any]]] = {
     "Germany": [
         {
@@ -23,6 +24,7 @@ SPECIALISTS: dict[str, list[dict[str, Any]]] = {
             "wait_weeks": 1,
             "booking_provider": "Doctolib",
             "booking_link": "https://www.doctolib.de/frauenarzt/berlin",
+            "appointment_options": ["Tuesday 10:00", "Thursday 14:00"],
         },
         {
             "name": "Dr. Lena Weber",
@@ -31,6 +33,7 @@ SPECIALISTS: dict[str, list[dict[str, Any]]] = {
             "wait_weeks": 1,
             "booking_provider": "Doctolib",
             "booking_link": "https://www.doctolib.de/frauenarzt/hamburg",
+            "appointment_options": ["Monday 09:30", "Wednesday 16:00"],
         },
         {
             "name": "Dr. Marie Keller",
@@ -39,6 +42,7 @@ SPECIALISTS: dict[str, list[dict[str, Any]]] = {
             "wait_weeks": 2,
             "booking_provider": "Doctolib",
             "booking_link": "https://www.doctolib.de/frauenarzt/muenchen",
+            "appointment_options": ["Tuesday 12:30", "Friday 08:45"],
         },
         {
             "name": "Dr. Sarah Hoffmann",
@@ -47,6 +51,7 @@ SPECIALISTS: dict[str, list[dict[str, Any]]] = {
             "wait_weeks": 2,
             "booking_provider": "Doctolib",
             "booking_link": "https://www.doctolib.de/frauenarzt/koeln",
+            "appointment_options": ["Wednesday 11:00", "Friday 15:30"],
         },
         {
             "name": "Dr. Nina Wagner",
@@ -55,6 +60,124 @@ SPECIALISTS: dict[str, list[dict[str, Any]]] = {
             "wait_weeks": 2,
             "booking_provider": "Doctolib",
             "booking_link": "https://www.doctolib.de/frauenarzt/frankfurt-am-main",
+            "appointment_options": ["Monday 14:00", "Thursday 09:00"],
+        },
+        {
+            "name": "Dr. Clara Neumann",
+            "city": "Stuttgart",
+            "specialty": "Gynecology + fibroid ultrasound",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/stuttgart",
+            "appointment_options": ["Tuesday 08:30", "Thursday 13:30"],
+        },
+        {
+            "name": "Dr. Julia Brandt",
+            "city": "Dusseldorf",
+            "specialty": "Gynecology + heavy bleeding clinic",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/duesseldorf",
+            "appointment_options": ["Monday 10:15", "Wednesday 14:45"],
+        },
+        {
+            "name": "Dr. Miriam Seidel",
+            "city": "Dresden",
+            "specialty": "Gynecology + minimally invasive fibroid care",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/dresden",
+            "appointment_options": ["Tuesday 15:00", "Friday 11:30"],
+        },
+        {
+            "name": "Dr. Paula Fischer",
+            "city": "Hannover",
+            "specialty": "Gynecology + fibroid consultation",
+            "wait_weeks": 1,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/hannover",
+            "appointment_options": ["Monday 12:00", "Thursday 16:15"],
+        },
+        {
+            "name": "Dr. Eva Lorenz",
+            "city": "Bremen",
+            "specialty": "Gynecology + anemia-aware bleeding care",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/bremen",
+            "appointment_options": ["Wednesday 09:15", "Friday 13:00"],
+        },
+        {
+            "name": "Dr. Johanna Kruger",
+            "city": "Wiesbaden",
+            "specialty": "Gynecology + fibroid care planning",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/wiesbaden",
+            "appointment_options": ["Tuesday 10:45", "Thursday 15:45"],
+        },
+        {
+            "name": "Dr. Elise Kramer",
+            "city": "Mainz",
+            "specialty": "Gynecology + cycle disorder consult",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/mainz",
+            "appointment_options": ["Monday 08:45", "Wednesday 12:15"],
+        },
+        {
+            "name": "Dr. Sophie Adler",
+            "city": "Potsdam",
+            "specialty": "Gynecology + fibroid ultrasound",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/potsdam",
+            "appointment_options": ["Tuesday 13:15", "Friday 09:45"],
+        },
+        {
+            "name": "Dr. Katja Vogel",
+            "city": "Kiel",
+            "specialty": "Gynecology + minimally invasive consultation",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/kiel",
+            "appointment_options": ["Monday 15:00", "Thursday 11:15"],
+        },
+        {
+            "name": "Dr. Laura Becker",
+            "city": "Erfurt",
+            "specialty": "Gynecology + fibroid prevention counseling",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/erfurt",
+            "appointment_options": ["Wednesday 10:30", "Friday 14:30"],
+        },
+        {
+            "name": "Dr. Hannah Roth",
+            "city": "Magdeburg",
+            "specialty": "Gynecology + heavy bleeding clinic",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/magdeburg",
+            "appointment_options": ["Tuesday 16:00", "Thursday 08:30"],
+        },
+        {
+            "name": "Dr. Amelie Klein",
+            "city": "Saarbrucken",
+            "specialty": "Gynecology + fibroid care navigation",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/saarbruecken",
+            "appointment_options": ["Monday 11:45", "Wednesday 15:15"],
+        },
+        {
+            "name": "Dr. Nora Stein",
+            "city": "Schwerin",
+            "specialty": "Gynecology + symptom triage",
+            "wait_weeks": 2,
+            "booking_provider": "Doctolib",
+            "booking_link": "https://www.doctolib.de/frauenarzt/schwerin",
+            "appointment_options": ["Tuesday 09:00", "Friday 12:45"],
         },
     ],
     "UK": [
@@ -187,12 +310,14 @@ def voicing_for_appointments(
     if available:
         best = available[0]
         wait_time = _wait_label(best["wait_weeks"])
+        appointment_options = best.get("appointment_options", ["Tuesday 10:00", "Thursday 14:00"])
         return {
             "specialist": best["name"],
             "city": best["city"],
             "specialty": best["specialty"],
             "wait_time": wait_time,
             "wait_weeks": best["wait_weeks"],
+            "appointment_options": appointment_options,
             "priority": priority,
             "region": region,
             "booking_provider": best["booking_provider"],
@@ -200,8 +325,11 @@ def voicing_for_appointments(
             "voicing_script": (
                 f"Hi, I am WombWise. Based on your elevated fibroid risk, I found "
                 f"{best['name']}, a {best['specialty']} specialist in {best['city']}. "
-                f"The earliest {best['booking_provider']} appointment is in {wait_time}. "
-                f"Would you like me to open the booking link and reserve the next available slot?"
+                f"I found two {best['booking_provider']} options: {appointment_options[0]} "
+                f"or {appointment_options[1]}. Which one works better for you?"
+            ),
+            "booking_action": (
+                f"Open {best['booking_provider']} and preselect gynecology in {best['city']}."
             ),
         }
 

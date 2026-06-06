@@ -12,7 +12,11 @@ import re
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from datetime import date
+
 from pydantic import BaseModel, Field
+
+from wombwise_cycle import get_cycle_phase as get_cycle_phase_for_length
 
 # Foods that raise estrogen / inflammation risk
 RISK_FOODS: dict[str, tuple[str, int]] = {
@@ -105,7 +109,16 @@ ACTION_LIBRARY: dict[str, list[str]] = {
 
 
 class ShieldInput(BaseModel):
-    cycle_day: int = Field(ge=1, le=28, description="Day of menstrual cycle (1–28)")
+    cycle_day: int = Field(ge=1, le=60, description="Day of menstrual cycle")
+    cycle_length: int = Field(default=28, ge=21, le=45, description="Personalized cycle length")
+    last_period_start: date | None = Field(
+        default=None,
+        description="Optional start date of the most recent period",
+    )
+    previous_period_start: date | None = Field(
+        default=None,
+        description="Optional start date of the previous period",
+    )
     stress_level: int = Field(ge=1, le=5, description="Stress level 1 (calm) to 5 (very stressed)")
     food_log: str = Field(min_length=1, description="Free-text description of today's food")
     vitamin_d_supplement: bool = Field(default=False, description="Taking vitamin D supplement today")
@@ -117,27 +130,25 @@ class ShieldResult:
     risk_score: int
     estrogen_risk_label: str
     cycle_phase: str
+    cycle_length: int
+    cycle_day: int
     three_actions: list[str]
     shield_score: int
     explanation: str
     food_analysis: dict[str, Any]
     stress_multiplier: float
+    cycle_info: dict[str, Any] | None = None
 
 
-def get_cycle_phase(cycle_day: int) -> str:
-    if cycle_day <= 5:
-        return "Menstrual"
-    if cycle_day <= 13:
-        return "Follicular"
-    if cycle_day == 14:
-        return "Ovulation"
-    if cycle_day <= 21:
-        return "Luteal"
-    return "Late Luteal"
+def get_cycle_phase(cycle_day: int, cycle_length: int = 28) -> str:
+    return get_cycle_phase_for_length(cycle_day, cycle_length)
 
 
-def _base_cycle_risk(cycle_day: int) -> int:
-    phase = get_cycle_phase(cycle_day)
+def _base_cycle_risk(cycle_day: int, cycle_length: int = 28) -> int:
+    phase = get_cycle_phase(cycle_day, cycle_length)
+    late_luteal_start = max(6, cycle_length - 14) + 8
+    if cycle_day >= late_luteal_start:
+        return 70
     return {
         "Menstrual": 35,
         "Follicular": 25,
@@ -233,10 +244,15 @@ def _risk_level(score: int) -> str:
     return "LOW"
 
 
-def analyze_daily_shield(checkin: ShieldInput) -> ShieldResult:
+def analyze_daily_shield(
+    checkin: ShieldInput,
+    cycle_info: dict[str, Any] | None = None,
+) -> ShieldResult:
     """Core WombWise analysis: cycle + stress + food -> daily guidance."""
-    cycle_phase = get_cycle_phase(checkin.cycle_day)
-    base_risk = _base_cycle_risk(checkin.cycle_day)
+    cycle_length = checkin.cycle_length
+    cycle_day = checkin.cycle_day
+    cycle_phase = get_cycle_phase(cycle_day, cycle_length)
+    base_risk = _base_cycle_risk(cycle_day, cycle_length)
     stress_mult = _stress_multiplier(checkin.stress_level)
     food_analysis = analyze_food_log(checkin.food_log)
 
@@ -255,7 +271,7 @@ def analyze_daily_shield(checkin: ShieldInput) -> ShieldResult:
     }[risk_level]
 
     explanation_parts = [
-        f"Cycle day {checkin.cycle_day} ({cycle_phase} phase)",
+        f"Cycle day {cycle_day} of {cycle_length} ({cycle_phase} phase)",
         f"stress level {checkin.stress_level}/5",
         food_analysis["assessment"],
     ]
@@ -271,21 +287,30 @@ def analyze_daily_shield(checkin: ShieldInput) -> ShieldResult:
         risk_score=risk_score,
         estrogen_risk_label=estrogen_label,
         cycle_phase=cycle_phase,
+        cycle_length=cycle_length,
+        cycle_day=cycle_day,
         three_actions=three_actions,
         shield_score=shield_score,
         explanation=explanation,
         food_analysis=food_analysis,
         stress_multiplier=stress_mult,
+        cycle_info=cycle_info,
     )
 
 
-def analyze_dict(checkin: ShieldInput) -> dict[str, Any]:
-    return asdict(analyze_daily_shield(checkin))
+def analyze_dict(
+    checkin: ShieldInput,
+    cycle_info: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return asdict(analyze_daily_shield(checkin, cycle_info))
 
 
 # Demo scenario: luteal phase + high stress + red meat
 DEMO_SHIELD_INPUT = ShieldInput(
-    cycle_day=22,
+    cycle_day=20,
+    cycle_length=29,
+    last_period_start=date(2026, 5, 18),
+    previous_period_start=date(2026, 4, 19),
     stress_level=4,
     food_log="Coffee, steak with fries, and a glass of wine for dinner",
     vitamin_d_supplement=False,
